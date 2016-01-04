@@ -406,6 +406,9 @@ public abstract class GenericAnnotatedTypeFactory<
                                         + "@DefaultQualifierInHierarchy or @DefaultFor(DefaultLocation.OTHERWISE) not found. "
                                         + "Every checker must specify a default qualifier.");
         }
+        Set<? extends AnnotationMirror> tops = this.qualHierarchy.getTopAnnotations();
+        Set<? extends  AnnotationMirror> bottoms = this.qualHierarchy.getBottomAnnotations();
+        defs.addClimbStandardDefaults(tops,bottoms);
     }
 
     /**
