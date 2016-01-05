@@ -125,6 +125,9 @@ public abstract class GenericAnnotatedTypeFactory<
     /** Should use flow analysis? */
     protected boolean useFlow;
 
+    /** Is dataflow ever used for this checker? **/
+    private final boolean neverUsesDataFlow;
+
     /** An empty store. */
     private Store emptyStore;
 
@@ -138,6 +141,7 @@ public abstract class GenericAnnotatedTypeFactory<
     public GenericAnnotatedTypeFactory(BaseTypeChecker checker, boolean useFlow) {
         super(checker);
 
+        this.neverUsesDataFlow = !useFlow;
         this.useFlow = useFlow;
         this.analyses = new LinkedList<>();
         this.scannedClasses = new HashMap<>();
@@ -408,7 +412,8 @@ public abstract class GenericAnnotatedTypeFactory<
         }
         Set<? extends AnnotationMirror> tops = this.qualHierarchy.getTopAnnotations();
         Set<? extends  AnnotationMirror> bottoms = this.qualHierarchy.getBottomAnnotations();
-        defs.addClimbStandardDefaults(tops,bottoms);
+        if(!this.neverUsesDataFlow)
+            defs.addClimbStandardDefaults(tops,bottoms);
     }
 
     /**
