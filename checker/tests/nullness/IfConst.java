@@ -217,7 +217,7 @@ public class IfConst {
     class NonConstantVariable {
         // (TRUE) is not a "constant expression" per JLS 15.28,
         // because TRUE is not a "constant variable" per JLS 4.12.4
-        // (because it is not "final").
+        // (because it is not final).
         String foo() {
             boolean TRUE = true;
             String ans = null;
@@ -227,8 +227,8 @@ public class IfConst {
         }
     }
 
-    /* XFAIL because CFGBuilder.isTrueBooleanConstantExpression only
-       handles literals currently:
+    /* XFAIL because CFGBuilder getBooleanConstantExpressionValue
+       currently only handles literals:
 
     class ConstantExpression {
         String foo() {
