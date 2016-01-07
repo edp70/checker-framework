@@ -3746,7 +3746,7 @@ public class CFGBuilder {
             final Label thenEntry = new Label();
             final Label elseEntry = new Label();
             final Label endIf = new Label();
-            final Label deadEnd = regularExitLabel; // new SpecialBlockType?
+            final Label deadEnd = exceptionalExitLabel; // new SpecialBlockType?
 
             extendWithExtendedNode(new ConditionalJump(thenEntry, elseEntry));
 

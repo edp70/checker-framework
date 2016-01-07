@@ -214,6 +214,14 @@ public class IfConst {
         }
     }
 
+    class DeadCodeDoesNotCompleteNormally {
+        Object x;
+        DeadCodeDoesNotCompleteNormally() {
+            if (true) {} else {}
+            x = new Object();
+        }
+    }
+
     class NonConstantVariable {
         // (TRUE) is not a "constant expression" per JLS 15.28,
         // because TRUE is not a "constant variable" per JLS 4.12.4
