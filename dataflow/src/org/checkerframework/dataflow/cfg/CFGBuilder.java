@@ -3705,34 +3705,83 @@ public class CFGBuilder {
 
         @Override
         public Node visitIf(IfTree tree, Void p) {
-            // all necessary labels
-            Label thenEntry = new Label();
-            Label elseEntry = new Label();
-            Label endIf = new Label();
+            final Node condition = unbox(scan(tree.getCondition(), p));
 
-            // basic block for the condition
-            unbox(scan(tree.getCondition(), p));
+            final boolean thenDead;
+            final boolean elseDead;
+            {
+                final Boolean v = getBooleanConstantExpressionValue(condition);
+                thenDead = Boolean.FALSE.equals(v);
+                elseDead = Boolean.TRUE.equals(v);
+            }
+            final boolean bothLive = !(thenDead || elseDead);
 
-            ConditionalJump cjump = new ConditionalJump(thenEntry, elseEntry);
-            extendWithExtendedNode(cjump);
+            // If one branch is dead, the other branch is definitely
+            // taken, and the dead one is definitely not taken. We
+            // want analysis to "know" that (ie only apply the effects
+            // of the live branch and discard those of the dead one),
+            // but the dead branch still must be checked. We arrange
+            // for that here via CFG as follows.
+            //
+            // constant false condition => THEN is dead:
+            //
+            //   cond_jump b1/b2
+            //   b1: THEN; jump DEAD_END (exit)
+            //   b2:
+            //   end: ELSE
+            //
+            // constant true condition => ELSE is dead:
+            //
+            //   cond_jump b1/b2
+            //   b1: ELSE; jump DEAD_END (exit)
+            //   b2:
+            //   end: THEN
+            //
+            // otherwise, both are live:
+            //
+            //   cond_jump b1/b2
+            //   b1: THEN; jump end
+            //   b2: ELSE
+            //   end:
 
-            // then branch
-            addLabelForNextNode(thenEntry);
-            StatementTree thenStatement = tree.getThenStatement();
-            scan(thenStatement, p);
-            extendWithExtendedNode(new UnconditionalJump(endIf));
+            final Label b1 = new Label();
+            final Label b2 = new Label();
+            final Label end = new Label();
+            final Label deadEnd = regularExitLabel; // new SpecialBlockType?
 
-            // else branch
-            addLabelForNextNode(elseEntry);
-            StatementTree elseStatement = tree.getElseStatement();
-            if (elseStatement != null) {
+            extendWithExtendedNode(new ConditionalJump(b1, b2));
+
+            final StatementTree thenStatement = tree.getThenStatement();
+            final StatementTree elseStatement = tree.getElseStatement();
+
+            // b1: THEN, or ELSE if ELSE is dead
+            addLabelForNextNode(b1);
+            scan(elseDead ? elseStatement : thenStatement, p);
+            extendWithExtendedNode(new UnconditionalJump(
+                    bothLive ? end : deadEnd));
+
+            // b2: ELSE, if both branches are alive
+            addLabelForNextNode(b2);
+            if (elseStatement != null && bothLive) {
                 scan(elseStatement, p);
             }
 
-            // label the end of the if statement
-            addLabelForNextNode(endIf);
+            addLabelForNextNode(end);
+
+            // THEN or ELSE, if the other one is dead
+            if (!bothLive) {
+                scan(thenDead ? elseStatement : thenStatement, p);
+            }
 
             return null;
+        }
+
+        private Boolean getBooleanConstantExpressionValue(final Node node) {
+            // only handles literals for now. TODO: "constant expression"
+            // per JLS 15.28 would be nice.
+            return node instanceof BooleanLiteralNode
+                ? ((BooleanLiteralNode) node).getValue()
+                : null;
         }
 
         @Override

@@ -30,7 +30,7 @@ public class Flow {
         @Format({ConversionCategory.GENERAL}) String nullAssign = null;
         //:: error: (format.string.invalid)
         f.format(nullAssign, "string");
-        if (false) {
+        if (true) {
             nullAssign = "%s";
         }
         f.format(nullAssign, "string");
