@@ -3724,21 +3724,21 @@ public class CFGBuilder {
             //
             // constant true condition => ELSE is dead:
             //
-            //   cond_jump b1/b2
+            //   cond_jump thenEntry/elseEntry
             //   thenEntry: jump endIf
             //   elseEntry: ELSE; jump DEAD_END (exit)
             //   endIf: THEN
             //
             // constant false condition => THEN is dead:
             //
-            //   cond_jump b1/b2
+            //   cond_jump thenEntry/elseEntry
             //   thenEntry: THEN; jump DEAD_END (exit)
             //   elseEntry:
             //   endIf: ELSE
             //
             // otherwise, both are live:
             //
-            //   cond_jump b1/b2
+            //   cond_jump thenEntry/elseEntry
             //   thenEntry: THEN; jump endIf
             //   elseEntry: ELSE
             //   endIf:
