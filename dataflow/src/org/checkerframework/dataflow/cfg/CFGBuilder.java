@@ -3714,7 +3714,6 @@ public class CFGBuilder {
                 thenDead = Boolean.FALSE.equals(v);
                 elseDead = Boolean.TRUE.equals(v);
             }
-            final boolean bothLive = !(thenDead || elseDead);
 
             // If one branch is dead, the other branch is definitely
             // taken, and the dead one is definitely not taken. We
@@ -3723,53 +3722,61 @@ public class CFGBuilder {
             // but the dead branch still must be checked. We arrange
             // for that here via CFG as follows.
             //
-            // constant false condition => THEN is dead:
-            //
-            //   cond_jump b1/b2
-            //   b1: THEN; jump DEAD_END (exit)
-            //   b2:
-            //   end: ELSE
-            //
             // constant true condition => ELSE is dead:
             //
             //   cond_jump b1/b2
-            //   b1: ELSE; jump DEAD_END (exit)
-            //   b2:
-            //   end: THEN
+            //   thenEntry: jump endIf
+            //   elseEntry: ELSE; jump DEAD_END (exit)
+            //   endIf: THEN
+            //
+            // constant false condition => THEN is dead:
+            //
+            //   cond_jump b1/b2
+            //   thenEntry: THEN; jump DEAD_END (exit)
+            //   elseEntry:
+            //   endIf: ELSE
             //
             // otherwise, both are live:
             //
             //   cond_jump b1/b2
-            //   b1: THEN; jump end
-            //   b2: ELSE
-            //   end:
+            //   thenEntry: THEN; jump endIf
+            //   elseEntry: ELSE
+            //   endIf:
 
-            final Label b1 = new Label();
-            final Label b2 = new Label();
-            final Label end = new Label();
+            final Label thenEntry = new Label();
+            final Label elseEntry = new Label();
+            final Label endIf = new Label();
             final Label deadEnd = regularExitLabel; // new SpecialBlockType?
 
-            extendWithExtendedNode(new ConditionalJump(b1, b2));
+            extendWithExtendedNode(new ConditionalJump(thenEntry, elseEntry));
 
             final StatementTree thenStatement = tree.getThenStatement();
-            final StatementTree elseStatement = tree.getElseStatement();
+            final /*@Nullable*/ StatementTree elseStatement = tree.getElseStatement();
 
-            // b1: THEN, or ELSE if ELSE is dead
-            addLabelForNextNode(b1);
-            scan(elseDead ? elseStatement : thenStatement, p);
-            extendWithExtendedNode(new UnconditionalJump(
-                    bothLive ? end : deadEnd));
-
-            // b2: ELSE, if both branches are alive
-            addLabelForNextNode(b2);
-            if (elseStatement != null && bothLive) {
-                scan(elseStatement, p);
+            // THEN, unless ELSE is dead (in which case jump to end)
+            addLabelForNextNode(thenEntry);
+            if (elseDead) {
+                extendWithExtendedNode(new UnconditionalJump(endIf));
+            }
+            else {
+                scan(thenStatement, p);
+                final Label tgt = thenDead ? deadEnd : endIf;
+                extendWithExtendedNode(new UnconditionalJump(tgt));
             }
 
-            addLabelForNextNode(end);
+            // ELSE, unless THEN is dead (in which case continue to end)
+            addLabelForNextNode(elseEntry);
+            if (!thenDead && elseStatement != null) {
+                scan(elseStatement, p);
+                if (elseDead) {
+                    extendWithExtendedNode(new UnconditionalJump(deadEnd));
+                }
+            }
 
-            // THEN or ELSE, if the other one is dead
-            if (!bothLive) {
+            addLabelForNextNode(endIf);
+
+            // definitely taken branch, if one branch is dead.
+            if (thenDead || elseDead) {
                 scan(thenDead ? elseStatement : thenStatement, p);
             }
 
