@@ -54,7 +54,7 @@ public class IfConst {
     }
 
     class LiteralFalse {
-        class EmptyElse {
+        class EmptyThen {
             String foo() {
                 final String ans;
                 if (false) {} else ans = "foo";
@@ -72,7 +72,7 @@ public class IfConst {
             }
         }
 
-        class NonEmptyElse {
+        class NonEmptyThen {
             String foo() {
                 final String ans;
                 if (false) ans = null; else ans = "foo";
