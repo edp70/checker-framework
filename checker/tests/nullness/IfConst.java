@@ -222,6 +222,19 @@ public class IfConst {
         }
     }
 
+    class ReturnOnlyReachableViaDeadCode {
+        public String foo() {
+            final String ans;
+            if (false) {
+                ans = "foo";
+            }
+            else {
+                throw new Error();
+            }
+            return ans;
+        }
+    }
+
     class NonConstantVariable {
         // (TRUE) is not a "constant expression" per JLS 15.28,
         // because TRUE is not a "constant variable" per JLS 4.12.4
