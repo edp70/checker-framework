@@ -227,7 +227,7 @@ public class SwingTest {
           break;
         }
       }
-      //:: error: (return.type.incompatible)
+      // no error here because then-branch is dead
       return o;
   }
 

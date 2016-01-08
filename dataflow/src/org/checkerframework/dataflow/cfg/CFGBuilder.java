@@ -3784,10 +3784,9 @@ public class CFGBuilder {
         }
 
         private Boolean getBooleanConstantExpressionValue(final Node node) {
-            // only handles literals for now. TODO: "constant expression"
-            // per JLS 15.28 would be nice.
-            return node instanceof BooleanLiteralNode
-                ? ((BooleanLiteralNode) node).getValue()
+            final Tree tree = node.getTree();
+            return tree != null
+                ? InternalUtils.getBooleanConstantExpressionValue(tree)
                 : null;
         }
 

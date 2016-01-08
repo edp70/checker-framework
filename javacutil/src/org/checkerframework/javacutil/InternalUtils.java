@@ -231,6 +231,22 @@ public class InternalUtils {
     }
 
     /**
+     * If the given tree represents a boolean constant expression (per
+     * JLS 15.28), returns its value, if known (ie true or false).
+     * Otherwise, returns null.
+     *
+     * (Implementation note: The value should be known, but this
+     * depends on javac internals, and on the assumption that javac's
+     * ANALYZE phase has been run.)
+     */
+    public static /*@Nullable*/ Boolean getBooleanConstantExpressionValue(final Tree tree) {
+        final Type type = ((JCTree) tree).type;
+        return type.isTrue() ? Boolean.TRUE
+            : type.isFalse() ? Boolean.FALSE
+            : null;
+    }
+
+    /**
      * Returns whether a TypeVariable represents a captured type.
      */
     public static boolean isCaptured(TypeVariable typeVar) {

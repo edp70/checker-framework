@@ -235,33 +235,55 @@ public class IfConst {
         }
     }
 
-    /* XFAIL because CFGBuilder getBooleanConstantExpressionValue
-       currently only handles literals:
-
-    class ConstantExpression {
-        String foo() {
-            final String ans;
-            if (!!false || (!!true)) ans = "foo";
-            return ans;
+    class OtherConstantExpressions {
+        class VariousBooleanExpressions {
+            String notFalse() {
+                final String ans;
+                if (!false) ans = "foo";
+                return ans;
+            }
+            String notNotTrue() {
+                final String ans;
+                if (!!true) ans = "foo";
+                return ans;
+            }
+            String TrueOrFalse() {
+                final String ans;
+                if (true||false) ans = "foo";
+                return ans;
+            }
+            String FalseOrTrue() {
+                final String ans;
+                if (false||true) ans = "foo";
+                return ans;
+            }
         }
-    }
 
-    class ConstantVariable {
-        String foo() {
+        class Variable {
+            String foo() {
+                final boolean TRUE = true;
+                final String ans;
+                if (TRUE) ans = "foo";
+                return ans;
+            }
+        }
+
+        class Field {
             final boolean TRUE = true;
-            final String ans;
-            if (TRUE) ans = "foo";
-            return ans;
+            String foo() {
+                final String ans;
+                if (TRUE) ans = "foo";
+                return ans;
+            }
         }
-    }
 
-    class ConstantField {
-        final boolean TRUE = true;
-        String foo() {
-            final String ans;
-            if (TRUE) ans = "foo";
-            return ans;
+        class StaticField {
+            static final boolean TRUE = true;
+            String foo() {
+                final String ans;
+                if (TRUE) ans = "foo";
+                return ans;
+            }
         }
     }
-    */
 }
